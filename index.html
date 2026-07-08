@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para kay Roana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Caveat:wght@500;600;700&family=Special+Elite&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f3e6d1;
+    --paper-dark:#e6d2af;
+    --ink:#4a2530;
+    --ink-soft:#6b3b46;
+    --rose:#c96b82;
+    --rose-light:#f4c6d4;
+    --peony:#c8446a;
+    --peony-light:#f0a8bd;
+    --sage:#7c8b5e;
+    --gold:#b8863a;
+    --gold-dark:#7d5a22;
+    --sky-top:#3a2a3d;
+    --sky-bottom:#8a5a6b;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; min-height:100vh;
+    background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 55%, #c98a7a 100%);
+    font-family:'EB Garamond', serif;
+    overflow-x:hidden;
+    color:var(--ink);
+  }
+
+  .stage{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 16px;
+  }
+
+  /* ---------- Falling petals ---------- */
+  .petal-layer{
+    position:fixed; inset:0; pointer-events:none; z-index:2; overflow:hidden;
+  }
+  .petal{
+    position:absolute; top:-40px; opacity:0.9; will-change:transform;
+    animation-name:fall, sway;
+    animation-timing-function:linear, ease-in-out;
+    animation-iteration-count:infinite, infinite;
+  }
+  @keyframes fall{
+    to{ transform:translateY(110vh); }
+  }
+  @keyframes sway{
+    0%,100%{ margin-left:0px; }
+    50%{ margin-left:60px; }
+  }
+
+  /* ---------- Envelope ---------- */
+  #envelope-wrap{
+    position:relative; z-index:5;
+    transition:opacity .8s ease, transform .8s ease;
+  }
+  #envelope-wrap.hidden{
+    opacity:0; transform:scale(.9) translateY(-20px);
+    pointer-events:none;
+  }
+
+  .envelope{
+    width:340px; max-width:88vw; height:230px;
+    position:relative;
+    cursor:pointer;
+    filter:drop-shadow(0 18px 30px rgba(0,0,0,.35));
+  }
+  .env-body{
+    position:absolute; inset:0;
+    background:var(--paper-dark);
+    border-radius:4px;
+    border:1px solid rgba(74,37,48,.25);
+  }
+  .env-body::before{ /* left/right subtle shading */
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(120deg, rgba(0,0,0,.06), transparent 40%, transparent 60%, rgba(0,0,0,.08));
+    border-radius:4px;
+  }
+  .env-flap{
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    clip-path:polygon(0 0, 100% 0, 50% 58%);
+    background:linear-gradient(160deg, #e9d3af, #d8bd8c);
+    transform-origin:top center;
+    transition:transform .5s cubic-bezier(.6,-0.2,.3,1.3);
+    border-radius:4px 4px 0 0;
+    z-index:3;
+  }
+  .envelope.open .env-flap{
+    transform:rotateX(180deg);
+  }
+  .env-address{
+    position:absolute; left:0; right:0; bottom:38px;
+    text-align:center; z-index:1;
+    font-family:'Great Vibes', cursive;
+    font-size:32px; color:var(--ink-soft);
+  }
+  .env-stamp{
+    position:absolute; top:14px; right:16px; z-index:4;
+    width:52px; height:62px;
+    border:2px dashed var(--gold-dark);
+    background:var(--rose-light);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Special Elite', monospace;
+    font-size:9px; color:var(--ink-soft); text-align:center; line-height:1.2;
+    padding:4px;
+  }
+  .env-postmark{
+    position:absolute; top:18px; left:18px; z-index:4;
+    font-family:'Special Elite', monospace;
+    font-size:10px; color:var(--ink-soft);
+    border:1px solid var(--ink-soft); border-radius:50%;
+    width:64px; height:64px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    line-height:1.25; opacity:.75; transform:rotate(-8deg);
+    padding:4px;
+  }
+  .wax-seal{
+    position:absolute; left:50%; top:50%; z-index:6;
+    width:72px; height:72px; border-radius:50%;
+    transform:translate(-50%,-58%);
+    background:radial-gradient(circle at 35% 30%, #d1607c, var(--peony) 60%, #8f2f4b 100%);
+    box-shadow:0 4px 8px rgba(0,0,0,.4), inset 0 0 10px rgba(0,0,0,.35);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .5s ease, opacity .5s ease;
+    cursor:pointer;
+  }
+  .wax-seal svg{ width:34px; height:34px; opacity:.9; }
+  .envelope.open .wax-seal{
+    transform:translate(-50%,-58%) scale(0);
+    opacity:0;
+  }
+  .tap-hint{
+    position:absolute; bottom:-30px; left:0; right:0; text-align:center;
+    font-family:'Special Elite', monospace; font-size:12px; letter-spacing:1px;
+    color:var(--rose-light); opacity:.85; animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:.5;} 50%{opacity:1;} }
+
+  /* ---------- Letter ---------- */
+  #letter-wrap{
+    position:fixed; inset:0; z-index:10;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:40px 16px 80px;
+    overflow-y:auto; overflow-x:hidden;
+    opacity:0; pointer-events:none;
+    transition:opacity .6s ease;
+  }
+  #letter-wrap.show{ opacity:1; pointer-events:auto; }
+
+  .letter{
+    position:relative;
+    z-index:2;
+    max-width:620px; width:100%;
+    background:
+      radial-gradient(circle at 10% 15%, rgba(0,0,0,.03) 0, transparent 3%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,.03) 0, transparent 3%),
+      var(--paper);
+    padding:50px 44px 40px;
+    border-radius:2px;
+    box-shadow:0 30px 60px rgba(0,0,0,.45);
+    transform:translateY(40px) rotate(-1deg);
+    opacity:0;
+    transition:transform .5s cubic-bezier(.2,.8,.2,1), opacity .4s ease;
+  }
+  #letter-wrap.show .letter{
+    transform:translateY(0) rotate(0deg);
+    opacity:1;
+  }
+  .letter::after{ /* deckled/aged edge feel */
+    content:'';
+    position:absolute; inset:0;
+    box-shadow:inset 0 0 60px rgba(120,80,60,.18);
+    pointer-events:none;
+  }
+
+  /* ---------- Flower bouquet frame ---------- */
+  .letter-frame{
+    position:relative;
+    max-width:620px; width:100%;
+    padding:190px 150px;
+  }
+  .flowers-ring{
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.18));
+  }
+  .frame-flower{
+    position:absolute;
+    width:calc(var(--fsize) * 1px); height:calc(var(--fsize) * 1px);
+    transform:translate(-50%,-50%) rotate(var(--frot));
+  }
+  .ff-inner{
+    width:100%; height:100%;
+    transform:scale(0) rotate(0deg);
+    opacity:0;
+    transform-origin:center;
+    transition:transform .45s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+    transition-delay:var(--fdelay);
+  }
+  #letter-wrap.show .ff-inner{
+    transform:scale(1) rotate(0deg);
+    opacity:1;
+  }
+  @media (max-width:700px){
+    .letter-frame{ padding:75px 46px; }
+    .frame-flower{ width:calc(var(--fsize) * .5px); height:calc(var(--fsize) * .5px); }
+    .frame-flower.extra{ display:none; }
+  }
+
+  .turtle-sticker{
+    position:absolute;
+    right:-26px; bottom:-30px;
+    width:150px; z-index:5;
+    transform:rotate(9deg) scale(0);
+    transform-origin:bottom right;
+    transition:transform .6s cubic-bezier(.34,1.56,.64,1);
+    transition-delay:.35s;
+    filter:drop-shadow(0 8px 14px rgba(0,0,0,.3));
+  }
+  #letter-wrap.show .turtle-sticker{
+    transform:rotate(9deg) scale(1);
+  }
+  .turtle-sticker .critter-art svg{
+    width:100%; height:auto; display:block;
+  }
+  .turtle-sticker .for-you-text{
+    font-family:'Caveat', cursive; font-weight:700; font-size:20px;
+    color:var(--ink-soft); text-align:center; margin-top:-6px;
+    transform:rotate(-3deg);
+  }
+  @media (max-width:700px){
+    .turtle-sticker{ width:105px; right:-14px; bottom:-18px; }
+    .turtle-sticker .for-you-text{ font-size:16px; }
+  }
+
+  .close-btn{
+    position:fixed; top:18px; right:20px; z-index:20;
+    background:rgba(0,0,0,.35); color:#f3e6d1; border:1px solid rgba(255,255,255,.4);
+    font-family:'Special Elite', monospace; font-size:12px;
+    padding:8px 14px; border-radius:20px; cursor:pointer;
+    opacity:0; pointer-events:none; transition:opacity .4s ease;
+  }
+  .close-btn.show{ opacity:1; pointer-events:auto; }
+
+  .letter-postmark{
+    font-family:'Special Elite', monospace; font-size:12px; color:var(--ink-soft);
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px dashed rgba(74,37,48,.3); padding-bottom:12px; margin-bottom:26px;
+    letter-spacing:.5px;
+  }
+
+  .letter-title{
+    font-family:'Great Vibes', cursive; font-size:44px; color:var(--peony);
+    text-align:center; margin:0 0 6px;
+  }
+  .letter-sub{
+    text-align:center; font-family:'Special Elite', monospace; font-size:11px;
+    letter-spacing:2px; color:var(--sage); text-transform:uppercase; margin-bottom:30px;
+  }
+
+  .letter-body{
+    font-family:'Caveat', cursive;
+    font-size:26px; line-height:1.55; color:var(--ink);
+  }
+  .letter-body p{ margin:0 0 20px; }
+
+  .signature{
+    font-family:'Great Vibes', cursive; font-size:34px; color:var(--ink-soft);
+    text-align:right; margin-top:10px;
+  }
+
+  .ticket{
+    margin-top:34px; padding-top:20px; border-top:1px dashed rgba(74,37,48,.3);
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .ticket-stub{
+    font-family:'Special Elite', monospace; font-size:11px; color:var(--gold-dark);
+    background:var(--rose-light); border:1px dashed var(--gold-dark); border-radius:6px;
+    padding:8px 12px; text-align:center; letter-spacing:.5px;
+  }
+  .ticket-stub b{ display:block; font-size:16px; color:var(--peony); margin-top:2px; }
+
+  .cassette{
+    width:74px; height:48px; border-radius:6px; background:linear-gradient(160deg,#3a2a30,#231419);
+    display:flex; align-items:center; justify-content:center; gap:10px; position:relative;
+    box-shadow:0 4px 10px rgba(0,0,0,.4);
+  }
+  .reel{
+    width:18px; height:18px; border-radius:50%; border:3px solid var(--gold);
+    position:relative; animation:spin 3s linear infinite;
+  }
+  .reel::after{
+    content:''; position:absolute; inset:5px; border-radius:50%; background:var(--gold);
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .flowers-row{ display:flex; justify-content:center; gap:18px; margin:26px 0 6px; }
+  .flowers-row svg{ width:56px; height:56px; }
+
+  @media (max-width:480px){
+    .letter{ padding:36px 22px 30px; }
+    .letter-title{ font-size:34px; }
+    .letter-body{ font-size:22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="petal-layer" id="petals"></div>
+
+<div class="stage">
+  <div id="envelope-wrap">
+    <div class="envelope" id="envelope">
+      <div class="env-body"></div>
+      <div class="env-postmark">SAN ISIDRO<br>07 JUL 2026<br>★ ★ ★</div>
+      <div class="env-stamp">PAR AVION<br>♡<br>PHILIPPINES</div>
+      <div class="env-address">To Roana</div>
+      <div class="env-flap"></div>
+      <div class="wax-seal" id="seal">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M20 8c2 4 6 5 6 10a6 6 0 1 1-12 0c0-5 4-6 6-10Z" fill="#f4c6d4"/>
+        </svg>
+      </div>
+    </div>
+    <div class="tap-hint">tap the seal to open</div>
+  </div>
+</div>
+
+<div class="close-btn" id="closeBtn">✕ close</div>
+
+<div id="letter-wrap">
+  <div class="letter-frame" id="letterFrame">
+  <div class="flowers-ring" id="flowersRing"></div>
+  <div class="letter">
+    <div class="letter-postmark">
+      <span>SPECIAL DELIVERY</span>
+      <span>July 7, 2026</span>
+    </div>
+
+    <div class="letter-title">My Dearest Roana</div>
+    <div class="letter-sub">National Girlfriend's Day</div>
+
+    <div class="flowers-row">
+      <svg viewBox="0 0 60 60"><g id="cherryIcon"></g></svg>
+      <svg viewBox="0 0 60 60"><g id="peonyIcon"></g></svg>
+    </div>
+
+    <div class="letter-body">
+      <p>I know yesterday was "Girlfriend Day," and I also know we're not there. That's okay.</p>
+
+      <p>I just didn't want to let another day pass without telling you something I've been meaning to say.</p>
+
+      <p>Thank you for letting me be part of your days. Thank you for the conversations, the teasing, the random thoughts, the honesty, and even the difficult questions. Every little moment with you has become something I genuinely look forward to.</p>
+
+      <p>I admire the way you think, the way you stand by your values, and how deeply you care about the people you love. You've made me want to become a better version of myself not because you asked me to, but because you're someone worth becoming better for.</p>
+
+      <p>I'm not writing this to pressure you or to ask for an answer.
+
+I just want you to know that meeting you has been one of the happiest parts of my year.
+
+Whatever happens in the future, I'll continue showing you through my actions that my intentions are genuine. And if one day our paths lead us to something</p>
+    </div>
+
+    <div class="signature">Yours, always — Andrei</div>
+
+    <div class="ticket">
+      <div class="ticket-stub">TOGETHER SINCE<br>JUN 12 2026<br><b id="dayCount">—</b> days</div>
+      <div class="cassette">
+        <div class="reel"></div>
+        <div class="reel" style="animation-direction:reverse;"></div>
+      </div>
+    </div>
+
+    <div class="turtle-sticker">
+      <div class="critter-art" id="cornerCritter"></div>
+      <div class="for-you-text">for you!</div>
+      <svg class="mini-heart" viewBox="0 0 30 30" style="position:absolute; top:-10px; left:-8px; width:22px;">
+        <path d="M15 8c-2-5-10-3-10 2 0 5 6 8 10 12 4-4 10-7 10-12 0-5-8-7-10-2Z" fill="#f0a0b4"/>
+      </svg>
+    </div>
+
+  </div>
+  </div>
+</div>
+
+<script>
+// ---- petal generation ----
+const petalLayer = document.getElementById('petals');
+
+function cherryPetalSVG(){
+  return `<svg viewBox="0 0 24 24" width="20" height="20">
+    <path d="M12 2c1.5 2.5 4 3 4 6a4 4 0 1 1-8 0c0-3 2.5-3.5 4-6Z" fill="#f4c6d4" opacity="0.9"/>
+  </svg>`;
+}
+function peonyPetalSVG(){
+  return `<svg viewBox="0 0 24 24" width="18" height="18">
+    <ellipse cx="12" cy="12" rx="7" ry="5" fill="#f0a8bd" opacity="0.85" transform="rotate(20 12 12)"/>
+  </svg>`;
+}
+
+function spawnPetal(){
+  const el = document.createElement('div');
+  el.className = 'petal';
+  el.innerHTML = Math.random() > 0.5 ? cherryPetalSVG() : peonyPetalSVG();
+  const left = Math.random()*100;
+  const fallDur = 8 + Math.random()*8;
+  const swayDur = 2 + Math.random()*2;
+  const delay = Math.random()*4;
+  const rotate = Math.random()*360;
+  el.style.left = left+'vw';
+  el.style.animationDuration = fallDur+'s, '+swayDur+'s';
+  el.style.animationDelay = '-'+delay+'s, 0s';
+  el.style.transform = 'rotate('+rotate+'deg)';
+  petalLayer.appendChild(el);
+  setTimeout(()=> el.remove(), fallDur*1000 + delay*1000 + 500);
+}
+setInterval(spawnPetal, 500);
+for(let i=0;i<10;i++) setTimeout(spawnPetal, i*200);
+
+// ---- bouquet frame around the letter ----
+function cherryCluster(){
+  const tones = ['#f8d7e2','#f4c6d4','#eaa8ba'];
+  let blossoms = '';
+  const spots = [[38,40],[62,32],[50,58],[28,60],[70,55]];
+  spots.forEach((p,i)=>{
+    const tone = tones[i % tones.length];
+    const petals = [0,72,144,216,288].map(a=>
+      `<ellipse rx="6" ry="9" fill="${tone}" transform="rotate(${a} ${p[0]} ${p[1]}) translate(${p[0]},${p[1]-8})"/>`
+    ).join('');
+    blossoms += `<g>${petals}<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="#c8446a"/></g>`;
+  });
+  const leaves = `<path d="M20 75 Q30 60 45 68 Q35 78 20 75Z" fill="#8a9b6e"/>
+    <path d="M80 78 Q68 62 55 70 Q66 82 80 78Z" fill="#7c8b5e"/>`;
+  return `<svg viewBox="0 0 100 100">${leaves}${blossoms}</svg>`;
+}
+
+function peonyBloom(){
+  const outer = [0,30,60,90,120,150,180,210,240,270,300,330].map(a=>
+    `<ellipse rx="11" ry="20" fill="#e8a0b4" opacity=".9" transform="rotate(${a} 50 50) translate(50,32)"/>`
+  ).join('');
+  const inner = [15,75,135,195,255,315].map(a=>
+    `<ellipse rx="8" ry="14" fill="#c8446a" opacity=".95" transform="rotate(${a} 50 50) translate(50,38)"/>`
+  ).join('');
+  const leaf = `<path d="M18 82 Q34 64 50 78 Q34 92 18 82Z" fill="#7c8b5e"/>`;
+  return `<svg viewBox="0 0 100 100">${leaf}${outer}${inner}<circle cx="50" cy="50" r="7" fill="#8c611f"/></svg>`;
+}
+
+function fillerBud(variant){
+  if(variant === 'bell'){
+    const bells = [[35,30],[50,20],[65,32],[42,45],[58,48]].map(p=>
+      `<ellipse cx="${p[0]}" cy="${p[1]}" rx="6" ry="8" fill="#9c8fc9"/>`
+    ).join('');
+    return `<svg viewBox="0 0 100 100"><path d="M20 80 Q40 60 60 78" stroke="#7c8b5e" stroke-width="4" fill="none"/>${bells}</svg>`;
+  }
+  const petals = [0,60,120,180,240,300].map(a=>
+    `<ellipse rx="9" ry="14" fill="#fbfbf6" transform="rotate(${a} 50 50) translate(50,32)"/>`
+  ).join('');
+  return `<svg viewBox="0 0 100 100"><path d="M25 82 Q40 66 55 80" stroke="#8a9b6e" stroke-width="4" fill="none"/>${petals}<circle cx="50" cy="50" r="9" fill="#e0a52e"/></svg>`;
+}
+
+const bouquetLayout = [];
+
+const ANIMAL_PALETTES = {
+  turtle: { head:'#a8dba6', body:'#7cb87a', stroke:'#3f5f3d', ear:null },
+  bunny:  { head:'#fdf3e7', body:'#f4e2c4', stroke:'#8a6a4a', ear:'#f6c6d6' },
+  bear:   { head:'#c98a55', body:'#b5794a', stroke:'#6b4423', ear:null },
+  cat:    { head:'#e0c9a6', body:'#d4b78e', stroke:'#6b5a4a', ear:null },
+  panda:  { head:'#ffffff', body:'#f2f2f2', stroke:'#2c2c2c', ear:'#2c2c2c' },
+};
+
+function animalSVG(kind){
+  const p = ANIMAL_PALETTES[kind];
+  let ears = '';
+  if(kind === 'bunny'){
+    ears = `<ellipse cx="34" cy="10" rx="8" ry="22" fill="${p.head}" stroke="${p.stroke}" stroke-width="2.5" transform="rotate(-8 34 10)"/>
+            <ellipse cx="34" cy="13" rx="4" ry="14" fill="${p.ear}" transform="rotate(-8 34 13)"/>
+            <ellipse cx="66" cy="10" rx="8" ry="22" fill="${p.head}" stroke="${p.stroke}" stroke-width="2.5" transform="rotate(8 66 10)"/>
+            <ellipse cx="66" cy="13" rx="4" ry="14" fill="${p.ear}" transform="rotate(8 66 13)"/>`;
+  } else if(kind === 'bear'){
+    ears = `<circle cx="27" cy="19" r="12" fill="${p.body}" stroke="${p.stroke}" stroke-width="2.5"/>
+            <circle cx="73" cy="19" r="12" fill="${p.body}" stroke="${p.stroke}" stroke-width="2.5"/>`;
+  } else if(kind === 'cat'){
+    ears = `<path d="M21 26 L31 3 L44 24Z" fill="${p.head}" stroke="${p.stroke}" stroke-width="2.5"/>
+            <path d="M79 26 L69 3 L56 24Z" fill="${p.head}" stroke="${p.stroke}" stroke-width="2.5"/>`;
+  } else if(kind === 'panda'){
+    ears = `<circle cx="25" cy="17" r="13" fill="${p.ear}"/>
+            <circle cx="75" cy="17" r="13" fill="${p.ear}"/>`;
+  }
+  const pandaPatches = kind === 'panda'
+    ? `<ellipse cx="38" cy="42" rx="9" ry="11" fill="${p.ear}" opacity=".85" transform="rotate(-10 38 42)"/>
+       <ellipse cx="62" cy="42" rx="9" ry="11" fill="${p.ear}" opacity=".85" transform="rotate(10 62 42)"/>` : '';
+  const whiskers = kind === 'cat'
+    ? `<path d="M18 47 L1 43M18 51 L0 51M18 55 L1 59" stroke="${p.stroke}" stroke-width="1.5" opacity=".6" fill="none"/>
+       <path d="M82 47 L99 43M82 51 L100 51M82 55 L99 59" stroke="${p.stroke}" stroke-width="1.5" opacity=".6" fill="none"/>` : '';
+  const shellLines = kind === 'turtle'
+    ? `<path d="M34 68 Q50 58 66 68 M39 82 Q50 76 61 82" stroke="${p.stroke}" stroke-width="2" fill="none" opacity=".45"/>` : '';
+  const eyeColor = kind === 'panda' ? '#fff' : '#2c2c2c';
+
+  return `<svg viewBox="0 0 100 108">
+    ${ears}
+    <ellipse cx="50" cy="80" rx="27" ry="24" fill="${p.body}" stroke="${p.stroke}" stroke-width="3"/>
+    ${shellLines}
+    <circle cx="50" cy="42" r="27" fill="${p.head}" stroke="${p.stroke}" stroke-width="3"/>
+    ${pandaPatches}
+    ${whiskers}
+    <circle cx="41" cy="${kind==='panda'?40:39}" r="3" fill="${kind==='panda'?'#2c2c2c':'#2c2c2c'}"/>
+    <circle cx="59" cy="${kind==='panda'?40:39}" r="3" fill="#2c2c2c"/>
+    <ellipse cx="35" cy="49" rx="5.5" ry="4" fill="#f6a8b8" opacity=".8"/>
+    <ellipse cx="65" cy="49" rx="5.5" ry="4" fill="#f6a8b8" opacity=".8"/>
+    <path d="M42 51 Q50 57 58 51" stroke="${p.stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <g transform="translate(3,2)">
+      <path d="M36 78 L64 61 L60 94 L31 88 Z" fill="#c9a06a" stroke="#8a6a3d" stroke-width="2"/>
+      <circle cx="46" cy="67" r="6.5" fill="#d94f6a"/><circle cx="46" cy="67" r="2.8" fill="#f2c14e"/>
+      <circle cx="58" cy="62" r="5.5" fill="#f0a8bd"/><circle cx="58" cy="62" r="2.4" fill="#f2c14e"/>
+      <circle cx="52" cy="73" r="5.5" fill="#b07cc6"/><circle cx="52" cy="73" r="2.4" fill="#f2c14e"/>
+      <path d="M39 82 Q31 73 41 67Z" fill="#8ba75f"/>
+    </g>
+  </svg>`;
+}
+
+function pickType(){
+  const r = Math.random();
+  if(r < 0.36) return 'cherry';
+  if(r < 0.66) return 'peony';
+  if(r < 0.85) return 'filler';
+  return 'animal';
+}
+const ANIMAL_KINDS = ['turtle','bunny','bear','cat','panda'];
+
+
+// Build a dense multi-row wreath around all four edges of the letter.
+// Row 0 = closest ring (always visible, even on mobile).
+// Rows 1+ = extra outer rings (hidden on small screens via .extra).
+function buildEdge(axis, count, rows){
+  for(let row=0; row<rows; row++){
+    const offset = -3 - row*8;      // how far this ring sits from the letter edge
+    for(let i=0;i<count;i++){
+      const t = count === 1 ? 0.5 : i/(count-1);
+      const jitterPos = (Math.random()-0.5)*6;
+      const jitterOff = (Math.random()-0.5)*4;
+      const type = pickType();
+      const size = type === 'animal'
+        ? Math.max(38, 62 - row*6 + (Math.random()-0.5)*14)
+        : Math.max(20, 48 - row*6 + (Math.random()-0.5)*16);
+      const rot = type === 'animal' ? (Math.random()-0.5)*16 : (Math.random()-0.5)*40;
+      const item = {
+        type, size, rot, extra: row>0,
+        variant: Math.random()<0.5?'bell':'daisy',
+        kind: ANIMAL_KINDS[Math.floor(Math.random()*ANIMAL_KINDS.length)]
+      };
+      if(axis === 'top'){ item.top = offset + jitterOff; item.left = t*100 + jitterPos; }
+      if(axis === 'bottom'){ item.top = 100 - offset + jitterOff; item.left = t*100 + jitterPos; }
+      if(axis === 'left'){ item.left = offset + jitterOff; item.top = t*100 + jitterPos; }
+      if(axis === 'right'){ item.left = 100 - offset + jitterOff; item.top = t*100 + jitterPos; }
+      bouquetLayout.push(item);
+    }
+  }
+}
+
+buildEdge('top',    16, 4);
+buildEdge('bottom', 16, 4);
+buildEdge('left',   10, 4);
+buildEdge('right',  10, 4);
+// corner clusters for extra fullness, like the reference bouquet photo
+[[0,0],[100,0],[0,100],[100,100]].forEach(([lt,tp])=>{
+  for(let k=0;k<6;k++){
+    bouquetLayout.push({
+      type: pickType(),
+      top: tp + (Math.random()-0.5)*22,
+      left: lt + (Math.random()-0.5)*22,
+      size: 30 + Math.random()*30,
+      rot: (Math.random()-0.5)*40,
+      extra: k>2,
+      variant: Math.random()<0.5?'bell':'daisy',
+      kind: ANIMAL_KINDS[Math.floor(Math.random()*ANIMAL_KINDS.length)]
+    });
+  }
+});
+
+const ring = document.getElementById('flowersRing');
+const frag = document.createDocumentFragment();
+bouquetLayout.forEach((f, i)=>{
+  const wrap = document.createElement('div');
+  wrap.className = 'frame-flower' + (f.extra ? ' extra' : '');
+  wrap.style.setProperty('--fsize', f.size);
+  wrap.style.setProperty('--frot', f.rot+'deg');
+  wrap.style.top = f.top+'%';
+  wrap.style.left = f.left+'%';
+  const inner = document.createElement('div');
+  inner.className = 'ff-inner';
+  inner.style.setProperty('--fdelay', ((i % 24) * 18)+'ms');
+  inner.innerHTML = f.type === 'peony' ? peonyBloom()
+                    : f.type === 'cherry' ? cherryCluster()
+                    : f.type === 'animal' ? animalSVG(f.kind)
+                    : fillerBud(f.variant);
+  wrap.appendChild(inner);
+  frag.appendChild(wrap);
+});
+ring.appendChild(frag);
+
+document.getElementById('cornerCritter').innerHTML = animalSVG('turtle');
+
+// ---- flower icons inside letter ----
+document.getElementById('cherryIcon').innerHTML = `
+  <g transform="translate(30,30)">
+    ${[0,72,144,216,288].map(a => `<ellipse rx="9" ry="14" fill="#f4c6d4" transform="rotate(${a}) translate(0,-12)"/>`).join('')}
+    <circle r="6" fill="#c8446a"/>
+  </g>`;
+document.getElementById('peonyIcon').innerHTML = `
+  <g transform="translate(30,30)">
+    ${[0,45,90,135,180,225,270,315].map(a => `<ellipse rx="8" ry="16" fill="#f0a8bd" opacity="0.85" transform="rotate(${a}) translate(0,-8)"/>`).join('')}
+    ${[20,110,200,290].map(a => `<ellipse rx="6" ry="10" fill="#c8446a" opacity="0.9" transform="rotate(${a}) translate(0,-4)"/>`).join('')}
+    <circle r="5" fill="#7d5a22"/>
+  </g>`;
+
+// ---- envelope interaction ----
+const envelope = document.getElementById('envelope');
+const seal = document.getElementById('seal');
+const envelopeWrap = document.getElementById('envelope-wrap');
+const letterWrap = document.getElementById('letter-wrap');
+const closeBtn = document.getElementById('closeBtn');
+
+function openLetter(){
+  envelope.classList.add('open');
+  setTimeout(()=>{
+    envelopeWrap.classList.add('hidden');
+    letterWrap.classList.add('show');
+    closeBtn.classList.add('show');
+  }, 280);
+}
+seal.addEventListener('click', (e)=>{ e.stopPropagation(); openLetter(); });
+envelope.addEventListener('click', openLetter);
+
+closeBtn.addEventListener('click', ()=>{
+  letterWrap.classList.remove('show');
+  closeBtn.classList.remove('show');
+  setTimeout(()=>{
+    envelope.classList.remove('open');
+    envelopeWrap.classList.remove('hidden');
+  }, 400);
+});
+
+// ---- day counter ----
+function updateCounter(){
+  const start = new Date('2026-06-12T00:00:00');
+  const now = new Date();
+  const days = Math.floor((now-start)/(1000*60*60*24));
+  document.getElementById('dayCount').textContent = days;
+}
+updateCounter();
+setInterval(updateCounter, 60000);
+</script>
+
+</body>
+</html>
